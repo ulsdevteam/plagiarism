@@ -44,35 +44,59 @@ class PlagiarismPlugin extends GenericPlugin {
 	 * @copydoc LazyLoadPlugin::getCanEnable()
 	 */
 	function getCanEnable($contextId = null) {
-		return !Config::getVar('ithenticate', 'ithenticate');
+		if ($contextId === null) {
+			$contextId = $this->getCurrentContextId();
+		}
+		list($username, $password) = $this->getForcedCredentials($contextId); 
+		// Automatically enabled (and cannot be manually enabled) if username and password are in config.inc.php
+		return !(isset($username) && isset($password));
 	}
 
 	/**
 	 * @copydoc LazyLoadPlugin::getCanDisable()
 	 */
 	function getCanDisable($contextId = null) {
-		return !Config::getVar('ithenticate', 'ithenticate');
+		if ($contextId === null) {
+			$contextId = $this->getCurrentContextId();
+		}
+		list($username, $password) = $this->getForcedCredentials($contextId); 
+		// Automatically enabled (and cannot be manually disabled) if username and password are in config.inc.php
+		return !(isset($username) && isset($password));
 	}
 
 	/**
 	 * @copydoc LazyLoadPlugin::getEnabled()
 	 */
 	function getEnabled($contextId = null) {
-		return parent::getEnabled($contextId) || Config::getVar('ithenticate', 'ithenticate');
+		if ($contextId === null) {
+			$contextId = $this->getCurrentContextId();
+		}
+		list($username, $password) = $this->getForcedCredentials($contextId); 
+		// Can be enabled in the UI, or can be automatically enabled if username and password are set in config.inc.php
+		return parent::getEnabled($contextId) || (isset($username) && isset($password));
 	}
 
 	/**
 	 * Fetch credentials from config.inc.php, if available
+	 * @param $contextId int Preferred context (but site can override)
 	 * @return array username and password, or null(s)
 	**/
-	function getForcedCredentials() {
-		$request = Application::getRequest();
-		$context = $request->getContext();
-		$contextPath = $context->getPath();
-		$username = Config::getVar('ithenticate', 'username[' . $contextPath . ']',
-				Config::getVar('ithenticate', 'username'));
-		$password = Config::getVar('ithenticate', 'password[' . $contextPath . ']',
-				Config::getVar('ithenticate', 'password'));
+	function getForcedCredentials($contextId) {
+		$context = null;
+		if ($contextId) {
+			$contextDao = Application::getContextDAO();
+			$context = $contextDao->getById($contextId);
+		}
+		if ($context) {
+			$contextPath = $context->getPath();
+			$username = Config::getVar('ithenticate', 'username[' . $contextPath . ']',
+					Config::getVar('ithenticate', 'username'));
+			$password = Config::getVar('ithenticate', 'password[' . $contextPath . ']',
+					Config::getVar('ithenticate', 'password'));
+		} else {
+			$username = Config::getVar('ithenticate', 'username');
+			$password = Config::getVar('ithenticate', 'password');
+		}
 		return [$username, $password];
 	}
 
@@ -141,7 +165,7 @@ class PlagiarismPlugin extends GenericPlugin {
 
 		// try to get credentials for current context otherwise use default config
         	$contextId = $context->getId();
-		list($username, $password) = $this->getForcedCredentials(); 
+		list($username, $password) = $this->getForcedCredentials($contextId); 
 		if (empty($username) || empty($password)) {
 			$username = $this->getSetting($contextId, 'ithenticateUser');
 			$password = $this->getSetting($contextId, 'ithenticatePass');

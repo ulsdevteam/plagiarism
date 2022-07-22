@@ -24,7 +24,7 @@ Watch [the demo](https://www.ithenticate.com/demo) to know more about the featur
 
 ## Configuration
 
-You may set the credentials in config.inc.php, or you may set the credentials per-journal in the plugin settings.  If credentials are present in config.inc.php, they will override those entered in the plugin settings form.
+You may set the credentials in config.inc.php, or you may set the credentials per-journal in the plugin settings.  If credentials are present in config.inc.php, they will override those entered in the plugin settings form and will automatically enable the plugin.
 
 The config.inc.php settings format is:
 
@@ -34,9 +34,6 @@ The config.inc.php settings format is:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 [ithenticate]
-
-; Enable iThenticate to submit manuscripts after submit step 4
-;ithenticate = On
 
 ; Credentials can be set by context : specify journal path
 ; The username to access the API (usually an email address)
@@ -52,3 +49,4 @@ The config.inc.php settings format is:
 ;password = "password"
 ```
 
+If you have an entry in this section for `ithenticate = On` from an earlier version, you can remove it.
