@@ -176,6 +176,8 @@ class PlagiarismPlugin extends GenericPlugin {
 		$ithenticate = null;
 		try {
 			$ithenticate = $this->ithenticateConnect($username, $password, $contextName);
+			$groupList = $ithenticate->fetchGroupList();
+			$groupId = array_search($contextName, $groupList);
 		} catch (Exception $e) {
 			$this->sendErrorMessage($submission->getId(), $e->getMessage());
 			return false;
